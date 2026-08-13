@@ -1,8 +1,8 @@
 # Negative electricity prices and the market premium in Germany
 
-Replication package for **"Short episodes, asymmetric payoffs: negative electricity prices and
-the market premium in Germany"** by Suho Ahn (School of Business and Technology Management,
-KAIST).
+Replication package for **"Short episodes, asymmetric payoffs: forecasting negative electricity
+prices and the market premium in Germany"** by Suho Ahn (School of Business and Technology
+Management, KAIST).
 
 The paper measures how long negative-price episodes last in the German day-ahead market,
 forecasts the event that suspends the renewable market premium under § 51 of the Renewable
@@ -12,7 +12,7 @@ Energy Sources Act, and asks what such a forecast is worth to the parties who mi
 
 ```
 src/                       feature and target construction, data retrieval, the persistence model
-experiments/01 .. 14/      one directory per numbered experiment; each script's docstring states
+experiments/01 .. 16/      one directory per numbered experiment; each script's docstring states
                            its purpose and, where applicable, its pre-registered decision rule
 data/raw/                  the exact data vintage used in the paper (parquet)
 data/metadata/             retrieval timestamps and series lengths
@@ -35,6 +35,22 @@ each series.
 **The archived parquet files are the experiment.** Re-running the download script will fetch the
 current vintage of the same series, which will differ from what the paper used. Use the archived
 files to reproduce the paper; use the script only if you want a later vintage.
+
+## The estimation scheme, and why it is what it is
+
+Classifiers are refitted **monthly** on a **rolling 730-day window**. These are two separate
+choices and only one of them is about computation.
+
+The refit schedule is monthly rather than daily as a concession to cost; `experiments/11_recalibration/`
+reports the pre-registered test that fixed it. The 730-day window is not a tuning choice: the
+paper's primary test is Giacomini & White's (2006) test of conditional predictive ability, whose
+asymptotics require the maximum estimation sample to stay finite as the out-of-sample count
+grows. An expanding window does not satisfy that, so forecasts produced by one cannot be tested
+this way. `experiments/08_infoset_dm/run_infoset_dm.py` documents this in `fit_block`.
+
+**Passing `--window-days 730` is therefore required to reproduce the paper's headline numbers.**
+Omitting it produces expanding-window forecasts, which are reported in the paper only as a
+robustness check (Appendix H) and which the inference is not valid for.
 
 ## Environment
 
@@ -63,29 +79,35 @@ The scripts are not independent; later ones read earlier outputs. Run in this or
 | # | Command | Produces | Approx. runtime |
 |---|---|---|---|
 | 1 | `python src/data/download_energy_charts.py` | `data/raw/` (skip to use the archived vintage) | 20 min |
-| 2 | `python experiments/02_episodes/analyze_episodes.py` | Tables 3-4, Section 4 | 1 min |
-| 3 | `python experiments/07_leakage_audit/run_leakage_audit.py` | leakage audit, Section 6.3 | 5 min |
-| 4 | `python experiments/08_infoset_dm/run_infoset_dm.py --recal month` | Table 6, DM tests | 35 min |
-| 5 | `python experiments/10_lear/run_lear_benchmark.py --forecast-only` | LEAR point forecasts | 2 h |
-| 6 | `python experiments/10_lear/run_lear_benchmark.py --no-exog --out-suffix _noexog --forecast-only` | LEAR without exogenous inputs | 2 h |
-| 7 | `python experiments/10_lear/score_lear.py` and `--suffix _noexog` | Tables 7-8 | 2 min |
-| 8 | `python experiments/11_recalibration/run_recal.py` | recalibration diagnosis | 20 min |
-| 9 | `python experiments/09_costloss/run_costloss.py` | Table 11 | 15 min |
-| 10 | `python experiments/13_load_only/run_load_only.py` | Table 12 | 20 min |
-| 11 | `python experiments/14_load_shifting/run_shifting.py` | Tables 9-10 | 2 min |
-| 12 | `python experiments/12_figures/make_figures.py` | Figures 1-4 | 1 min |
+| 2 | `python experiments/02_episodes/analyze_episodes.py` | Tables 2, 3, 5, 6, 7 | 1 min |
+| 3 | `python experiments/15_duration_test/run_duration_test.py` | Table 4 | 1 min |
+| 4 | `python experiments/07_leakage_audit/run_leakage_audit.py` | leakage audit, Section 6.3 | 5 min |
+| 5 | `python experiments/08_infoset_dm/run_infoset_dm.py --recal month --window-days 730` | Table 8 | 40 min |
+| 6 | `python experiments/16_inference/run_gw_inference.py` | Table 9 | 10 min |
+| 7 | `python experiments/10_lear/run_lear_benchmark.py --forecast-only` | LEAR point forecasts | 2 h |
+| 8 | `python experiments/10_lear/run_lear_benchmark.py --no-exog --out-suffix _noexog --forecast-only` | LEAR without exogenous inputs | 2 h |
+| 9 | `python experiments/10_lear/score_lear.py` and `--suffix _noexog` | Tables 10, 11 | 2 min |
+| 10 | `python experiments/11_recalibration/run_recal.py` | recalibration diagnosis, Section 6.2 | 20 min |
+| 11 | `python experiments/09_costloss/run_costloss.py` | Table 15 | 15 min |
+| 12 | `python experiments/13_load_only/run_load_only.py` | Table 16 | 20 min |
+| 13 | `python experiments/14_load_shifting/run_shifting.py` | Tables 12, 13, 14 | 2 min |
+| 14 | `python experiments/12_figures/make_figures.py` | Figures 1-4 | 1 min |
 
-About five hours end to end on six CPU cores, of which four are the two LEAR passes. **No GPU is
-required.** Steps 5 and 6 checkpoint to `outputs/preds/lear_ckpt*.parquet` and resume
+About five and a half hours end to end on six CPU cores, of which four are the two LEAR passes.
+**No GPU is required.** Steps 7 and 8 checkpoint to `outputs/preds/lear_ckpt*.parquet` and resume
 automatically if interrupted.
 
-Steps 1 and 4 write intermediate per-observation predictions to `outputs/preds/`, which is not
+To reproduce the expanding-window robustness column of Appendix H, run step 5 again without
+`--window-days` and then `python experiments/16_inference/run_gw_inference.py --preds monthly`.
+
+Steps 1 and 5 write intermediate per-observation predictions to `outputs/preds/`, which is not
 tracked here because it is large and fully regenerable.
 
 ## Determinism
 
 All estimators are seeded (`SEED = 42`). The neural experiment in `experiments/05_diagnosis/`
-runs three seeds and reports the spread rather than a single value.
+runs three seeds and reports the spread rather than a single value. The stationary block
+bootstrap in `experiments/16_inference/` uses the same seed and 5,000 replications.
 
 ## Notes on reading the code
 
@@ -94,10 +116,12 @@ run, and report the outcome against it whether or not it favoured the hypothesis
 `experiments/05_diagnosis/run_lookback_diagnosis.py`, `experiments/08_infoset_dm/`,
 `experiments/11_recalibration/` and `experiments/13_load_only/`.
 
-Two errors found during the work are documented in the code as well as in the paper:
+Three corrections made during the work are documented in the code as well as in the paper:
 `experiments/09_costloss/run_costloss.py` explains a train/validation leak in the threshold
-tuner, and `src/features.py` explains why the autoregressive benchmark was initially
-handicapped. Both are described in Section 8.1 of the paper.
+tuner; `src/features.py` explains why the autoregressive benchmark was initially handicapped by
+D-2 lags; and `experiments/08_infoset_dm/run_infoset_dm.py` explains why the estimation window
+changed from expanding to rolling. All three are described in Section 8.1 and Appendix G of the
+paper.
 
 ## Licence
 

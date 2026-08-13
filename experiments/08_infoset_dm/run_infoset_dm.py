@@ -153,8 +153,22 @@ def prepare(d: pd.DataFrame, target: str, level: str) -> pd.DataFrame:
     return frame
 
 
-def fit_block(fn, X, y_all, tr_mask, te_mask, recal: str, frame, test_year, min_train):
-    """Fit once per year, or refit each month on everything preceding that month."""
+def fit_block(fn, X, y_all, tr_mask, te_mask, recal: str, frame, test_year, min_train,
+              window_days: int | None = None):
+    """Fit once per year, or refit each month.
+
+    `window_days` controls the MEMORY of the estimator, which is a separate choice from the
+    refit schedule and matters for which inference is licensed. With None the training set is
+    everything preceding the cutoff, an expanding window. With an integer the training set is
+    only the last `window_days` days before the cutoff, a rolling window of fixed length.
+
+    Giacomini & White (2006) require the maximum estimation sample size to stay finite as the
+    out-of-sample count grows -- their Comment 2 is explicit that "the asymptotic distribution
+    is obtained for the number of out-of-sample observations n going to infinity, whereas the
+    maximum estimation sample size m is finite". An expanding window does not satisfy this, so
+    a GW test run on expanding-window forecasts is outside the theory. The rolling variant
+    exists so the test has forecasts it is actually valid for.
+    """
     if recal == "year":
         return fn(X[tr_mask].to_numpy(), y_all[tr_mask].to_numpy(), X[te_mask].to_numpy())
     out = np.full(int(te_mask.sum()), np.nan)
@@ -165,6 +179,9 @@ def fit_block(fn, X, y_all, tr_mask, te_mask, recal: str, frame, test_year, min_
             continue
         cutoff = pd.Timestamp(year=test_year, month=mo, day=1, tz=frame.index.tz)
         tr = np.asarray(frame.index < cutoff) & (tr_mask | te_mask)
+        if window_days is not None:
+            start = cutoff - pd.Timedelta(days=window_days)
+            tr &= np.asarray(frame.index >= start)
         if tr.sum() < min_train or y_all[tr].sum() < 20:
             continue
         sub = te_mask.copy()
@@ -174,7 +191,7 @@ def fit_block(fn, X, y_all, tr_mask, te_mask, recal: str, frame, test_year, min_
 
 
 def run_task(d: pd.DataFrame, target: str, level: str, rows: list, preds_out: Path,
-             recal: str = "year") -> None:
+             recal: str = "year", window_days: int | None = None) -> None:
     frame = prepare(d, target, level)
     y_all = frame[target]
     min_train, min_test = (2000, 100) if level == "hour" else (500, 60)
@@ -201,7 +218,8 @@ def run_task(d: pd.DataFrame, target: str, level: str, rows: list, preds_out: Pa
                 continue
             for mname, fn in MODELS.items():
                 t0 = time.perf_counter()
-                p = fit_block(fn, X, y_all, ok_tr, ok_te, recal, frame, test_year, min_train)
+                p = fit_block(fn, X, y_all, ok_tr, ok_te, recal, frame, test_year, min_train,
+                              window_days)
                 fit_s = time.perf_counter() - t0
                 keep = np.isfinite(p)
                 if keep.sum() < min_test:
@@ -230,11 +248,20 @@ def main() -> None:
     ap.add_argument("--recal", choices=["year", "month"], default="year",
                     help="refit once per test year, or monthly on all preceding data "
                          "(Section 5.4 adopts monthly; see experiment 11)")
+    ap.add_argument("--window-days", type=int, default=None,
+                    help="cap the training window at this many days before each refit "
+                         "cutoff. Required for the Giacomini-White test to apply; see "
+                         "fit_block.")
     args = ap.parse_args()
     sfx = "" if args.recal == "year" else "_monthly"
+    if args.window_days:
+        sfx += f"_w{args.window_days}"
 
     out_t = PROJECT_ROOT / "outputs" / "tables"
-    out_p = PROJECT_ROOT / "outputs" / "preds" / ("" if args.recal == "year" else "monthly")
+    sub = "" if args.recal == "year" else "monthly"
+    if args.window_days:
+        sub = f"rolling{args.window_days}"
+    out_p = PROJECT_ROOT / "outputs" / "preds" / sub
     out_t.mkdir(parents=True, exist_ok=True)
     out_p.mkdir(parents=True, exist_ok=True)
 
@@ -250,8 +277,8 @@ def main() -> None:
     # every run length § 51 EEG has used: six for the 2016-20 cohort, four for 2021-22,
     # three for the 2023 cohort from 2024, and none at all from 25 Feb 2025 (= y_neg)
     for tgt in ("y_neg", "y_run3", "y_run4", "y_run6"):
-        run_task(d, tgt, "hour", rows, out_p, args.recal)
-    run_task(d, "y_day4", "day", rows, out_p, args.recal)
+        run_task(d, tgt, "hour", rows, out_p, args.recal, args.window_days)
+    run_task(d, "y_day4", "day", rows, out_p, args.recal, args.window_days)
 
     res = pd.DataFrame(rows)
     res.to_csv(out_t / f"infoset_comparison{sfx}.csv", index=False)

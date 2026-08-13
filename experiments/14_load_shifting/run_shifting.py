@@ -119,14 +119,31 @@ def substitution_stats(day_frames, thr, shift_cost):
       precision = share of deviating days that paid
     """
     gains, losses = [], []
+    g_spread, g_cost, l_spread, l_cost = [], [], [], []
     for pr, cl, sc in day_frames:
-        v, _ = day_value(pr, cl, sc, N_HOURS, thr, shift_cost)
         if thr > 1.0 or np.sort(sc)[::-1][N_HOURS - 1] < thr:
             continue
-        (gains if v > 0 else losses).append(v)
+        v, changed = day_value(pr, cl, sc, N_HOURS, thr, shift_cost)
+        base = np.argsort(cl)[:N_HOURS]
+        chosen = np.argsort(-sc)[:N_HOURS]
+        spread = float(pr[base].sum() - pr[chosen].sum())   # market component
+        cost = shift_cost * changed                          # contractual component
+        if v > 0:
+            gains.append(v); g_spread.append(spread); g_cost.append(cost)
+        else:
+            losses.append(v); l_spread.append(spread); l_cost.append(cost)
     L = float(np.mean(gains)) if gains else np.nan
     C = -float(np.mean(losses)) if losses else np.nan
-    return C, L, len(gains), len(losses)
+    # C and L each split into a contractual part and a market-spread part. Reporting the split
+    # is what stops alpha from being described as a pure contract parameter: the shift cost is
+    # contractual, the realised spread is not.
+    dec = {
+        "L_market": float(np.mean(g_spread)) if g_spread else np.nan,
+        "L_contract": -float(np.mean(g_cost)) if g_cost else np.nan,
+        "C_market": -float(np.mean(l_spread)) if l_spread else np.nan,
+        "C_contract": float(np.mean(l_cost)) if l_cost else np.nan,
+    }
+    return C, L, len(gains), len(losses), dec
 
 
 def main() -> None:
@@ -168,14 +185,14 @@ def main() -> None:
                 if v.sum() > best_v:
                     best_t, best_v = float(t), v.sum()
             vals, changed = evaluate_year(te, best_t, sc_cost)
-            C, L, n_gain, n_cost = substitution_stats(te, best_t, sc_cost)
+            C, L, n_gain, n_cost, dec = substitution_stats(te, best_t, sc_cost)
             # C, L and pi are all realised test-year quantities, so comparing pi with
             # pi* = alpha/(1+alpha) on the SAME year is an accounting identity, not a test:
             # value = n_g*L - n_l*C > 0 iff n_g/n_l > C/L iff pi > pi*. It shows why the rule
             # pays; it cannot show that the criterion has predictive content. The genuine test
             # is whether alpha estimated on the PRECEDING year forecasts the sign of the next
             # year's value, which is what alpha_exante below records.
-            C_ex, L_ex, ng_ex, nl_ex = substitution_stats(va, best_t, sc_cost)
+            C_ex, L_ex, ng_ex, nl_ex, _ = substitution_stats(va, best_t, sc_cost)
             alpha_ex = (C_ex / L_ex) if (L_ex and np.isfinite(L_ex) and L_ex > 0) else np.nan
             dm = dm_hln(-vals, np.zeros_like(vals))
             alpha = C / L if (L and np.isfinite(L) and L > 0) else np.nan
@@ -187,7 +204,7 @@ def main() -> None:
                 "annual_value_per_MW": float(vals.sum()),
                 "mean_daily": float(vals.mean()), "sd_daily": float(vals.std(ddof=1)),
                 "sharpe": float(vals.mean() / vals.std(ddof=1)) if vals.std(ddof=1) else np.nan,
-                "C": C, "L": L, "alpha": alpha,
+                "C": C, "L": L, "alpha": alpha, **dec,
                 "pistar": alpha / (1 + alpha) if np.isfinite(alpha) else np.nan,
                 "alpha_exante": alpha_ex,
                 "pistar_exante": alpha_ex / (1 + alpha_ex) if np.isfinite(alpha_ex) else np.nan,

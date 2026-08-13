@@ -1,0 +1,15 @@
+# Intermediate per-observation predictions: large and fully regenerable by steps 4-6 of the
+# reproduction order in README.md
+outputs/preds/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini

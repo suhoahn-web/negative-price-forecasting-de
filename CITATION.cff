@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+title: >-
+  Replication package for "Short episodes, asymmetric payoffs: negative electricity prices
+  and the market premium in Germany"
+message: If you use this software or data, please cite the archived release.
+type: software
+authors:
+  - given-names: Suho
+    family-names: Ahn
+    affiliation: School of Business and Technology Management, KAIST
+    country: KR
+repository-code: https://github.com/REPLACE-WITH-YOUR-ACCOUNT/negative-price-forecasting-de
+license: MIT
+keywords:
+  - negative electricity prices
+  - electricity price forecasting
+  - market premium
+  - cost-loss ratio
+  - forecast value
+  - rare-event classification
+abstract: >-
+  Code and the archived data vintage reproducing all tables and figures of a study of
+  negative-price episodes in the German day-ahead electricity market. The study measures the
+  duration distribution of those episodes, forecasts the event that suspends the renewable
+  market premium under section 51 of the German Renewable Energy Sources Act, and evaluates
+  the economic value of such a forecast using a cost-loss framework. Data are public, from
+  the Energy-Charts API operated by Fraunhofer ISE under CC BY 4.0.

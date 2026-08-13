@@ -1,0 +1,91 @@
+task,features,model,test_year,n_features,PR_AUC
+y_neg,cal+AR(D-1),logit,2021,24,0.19388770731358446
+y_neg,cal+AR(D-1),lgbm,2021,24,0.2416800011859097
+y_neg,cal+AR(D-1),logit,2022,24,0.09185813490508121
+y_neg,cal+AR(D-1),lgbm,2022,24,0.15988291808213542
+y_neg,cal+AR(D-1),logit,2023,24,0.2602005682206061
+y_neg,cal+AR(D-1),lgbm,2023,24,0.3382571049026359
+y_neg,cal+AR(D-1),logit,2024,24,0.47154643739556645
+y_neg,cal+AR(D-1),lgbm,2024,24,0.4808169762810746
+y_neg,cal+AR(D-1),logit,2025,24,0.6803559021720614
+y_neg,cal+AR(D-1),lgbm,2025,24,0.6183321591760484
+y_neg,cal+AR(D-1)+load only,logit,2021,34,0.22303896015725488
+y_neg,cal+AR(D-1)+load only,lgbm,2021,34,0.27634033904607475
+y_neg,cal+AR(D-1)+load only,logit,2022,34,0.11272014088537996
+y_neg,cal+AR(D-1)+load only,lgbm,2022,34,0.2630069217824339
+y_neg,cal+AR(D-1)+load only,logit,2023,34,0.27773055933851887
+y_neg,cal+AR(D-1)+load only,lgbm,2023,34,0.3826912603686873
+y_neg,cal+AR(D-1)+load only,logit,2024,34,0.4898096188948471
+y_neg,cal+AR(D-1)+load only,lgbm,2024,34,0.5112288452139955
+y_neg,cal+AR(D-1)+load only,logit,2025,34,0.7054710915892292
+y_neg,cal+AR(D-1)+load only,lgbm,2025,34,0.6320083574666817
+y_neg,cal+AR(D-1)+FC,logit,2021,55,0.8245185544740379
+y_neg,cal+AR(D-1)+FC,lgbm,2021,55,0.854956889145836
+y_neg,cal+AR(D-1)+FC,logit,2022,55,0.7073061964611194
+y_neg,cal+AR(D-1)+FC,lgbm,2022,55,0.7715791209668427
+y_neg,cal+AR(D-1)+FC,logit,2023,55,0.7776491661523393
+y_neg,cal+AR(D-1)+FC,lgbm,2023,55,0.8282498947658173
+y_neg,cal+AR(D-1)+FC,logit,2024,55,0.7394349813194616
+y_neg,cal+AR(D-1)+FC,lgbm,2024,55,0.7565187635393681
+y_neg,cal+AR(D-1)+FC,logit,2025,55,0.8429948334653207
+y_neg,cal+AR(D-1)+FC,lgbm,2025,55,0.8644525571426706
+y_run4,cal+AR(D-1),logit,2021,24,0.19017219314740827
+y_run4,cal+AR(D-1),lgbm,2021,24,0.1748262987706856
+y_run4,cal+AR(D-1),logit,2022,24,0.0962985112914291
+y_run4,cal+AR(D-1),lgbm,2022,24,0.18339615752444938
+y_run4,cal+AR(D-1),logit,2023,24,0.23716930612268808
+y_run4,cal+AR(D-1),lgbm,2023,24,0.296633755600673
+y_run4,cal+AR(D-1),logit,2024,24,0.4123441009996696
+y_run4,cal+AR(D-1),lgbm,2024,24,0.4018301640968005
+y_run4,cal+AR(D-1),logit,2025,24,0.6532225310981583
+y_run4,cal+AR(D-1),lgbm,2025,24,0.5904714870029987
+y_run4,cal+AR(D-1)+load only,logit,2021,34,0.18377184653409415
+y_run4,cal+AR(D-1)+load only,lgbm,2021,34,0.2668621800572032
+y_run4,cal+AR(D-1)+load only,logit,2022,34,0.1149096382802202
+y_run4,cal+AR(D-1)+load only,lgbm,2022,34,0.19615032054228126
+y_run4,cal+AR(D-1)+load only,logit,2023,34,0.25354939834697054
+y_run4,cal+AR(D-1)+load only,lgbm,2023,34,0.3598115566188308
+y_run4,cal+AR(D-1)+load only,logit,2024,34,0.4036534964055257
+y_run4,cal+AR(D-1)+load only,lgbm,2024,34,0.40538719894478537
+y_run4,cal+AR(D-1)+load only,logit,2025,34,0.6783060994621303
+y_run4,cal+AR(D-1)+load only,lgbm,2025,34,0.6055902462733858
+y_run4,cal+AR(D-1)+FC,logit,2021,55,0.7519274711659796
+y_run4,cal+AR(D-1)+FC,lgbm,2021,55,0.8316996733906792
+y_run4,cal+AR(D-1)+FC,logit,2022,55,0.6449571212817669
+y_run4,cal+AR(D-1)+FC,lgbm,2022,55,0.7725930297510087
+y_run4,cal+AR(D-1)+FC,logit,2023,55,0.7884773015074794
+y_run4,cal+AR(D-1)+FC,lgbm,2023,55,0.8336494389654151
+y_run4,cal+AR(D-1)+FC,logit,2024,55,0.7202040364846392
+y_run4,cal+AR(D-1)+FC,lgbm,2024,55,0.7197305247192152
+y_run4,cal+AR(D-1)+FC,logit,2025,55,0.8095435740906536
+y_run4,cal+AR(D-1)+FC,lgbm,2025,55,0.839833378248143
+y_day4,cal+AR(D-1),logit,2021,24,0.522934079037499
+y_day4,cal+AR(D-1),lgbm,2021,24,0.46648675178571297
+y_day4,cal+AR(D-1),logit,2022,24,0.1892967150432286
+y_day4,cal+AR(D-1),lgbm,2022,24,0.20814528371803911
+y_day4,cal+AR(D-1),logit,2023,24,0.41422149902350713
+y_day4,cal+AR(D-1),lgbm,2023,24,0.36595559160952656
+y_day4,cal+AR(D-1),logit,2024,24,0.5256202411503946
+y_day4,cal+AR(D-1),lgbm,2024,24,0.5028409336546831
+y_day4,cal+AR(D-1),logit,2025,24,0.7540455862363205
+y_day4,cal+AR(D-1),lgbm,2025,24,0.7280320113573742
+y_day4,cal+AR(D-1)+load only,logit,2021,34,0.5103893455797843
+y_day4,cal+AR(D-1)+load only,lgbm,2021,34,0.5875313989863549
+y_day4,cal+AR(D-1)+load only,logit,2022,34,0.19582300406087816
+y_day4,cal+AR(D-1)+load only,lgbm,2022,34,0.20019370432586991
+y_day4,cal+AR(D-1)+load only,logit,2023,34,0.46723835422859583
+y_day4,cal+AR(D-1)+load only,lgbm,2023,34,0.40397500668458264
+y_day4,cal+AR(D-1)+load only,logit,2024,34,0.5245127356061334
+y_day4,cal+AR(D-1)+load only,lgbm,2024,34,0.5035771829682553
+y_day4,cal+AR(D-1)+load only,logit,2025,34,0.7801060864007043
+y_day4,cal+AR(D-1)+load only,lgbm,2025,34,0.7336210446660496
+y_day4,cal+AR(D-1)+FC,logit,2021,55,0.868564802835976
+y_day4,cal+AR(D-1)+FC,lgbm,2021,55,0.869327508537169
+y_day4,cal+AR(D-1)+FC,logit,2022,55,0.5311922799422799
+y_day4,cal+AR(D-1)+FC,lgbm,2022,55,0.6208381895881896
+y_day4,cal+AR(D-1)+FC,logit,2023,55,0.8176442207496434
+y_day4,cal+AR(D-1)+FC,lgbm,2023,55,0.8407894249241604
+y_day4,cal+AR(D-1)+FC,logit,2024,55,0.744600580276409
+y_day4,cal+AR(D-1)+FC,lgbm,2024,55,0.7904992363088044
+y_day4,cal+AR(D-1)+FC,logit,2025,55,0.8649731227660209
+y_day4,cal+AR(D-1)+FC,lgbm,2025,55,0.853682007740212

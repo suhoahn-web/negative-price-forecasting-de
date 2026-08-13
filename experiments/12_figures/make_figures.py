@@ -22,8 +22,10 @@ from src.features import build, load_hourly, run_lengths  # noqa: E402
 
 OUT = PROJECT_ROOT / "outputs" / "figures"
 OUT.mkdir(parents=True, exist_ok=True)
+# 600 dpi on save: Elsevier asks for 600 dpi for combination line/halftone art. The on-screen
+# figure dpi is left low so the layout is composed at the printed size rather than scaled up.
 plt.rcParams.update({"font.size": 8, "axes.spines.top": False, "axes.spines.right": False,
-                     "figure.dpi": 200, "savefig.bbox": "tight"})
+                     "figure.dpi": 200, "savefig.dpi": 600, "savefig.bbox": "tight"})
 GREY, DARK, MID = "0.75", "0.15", "0.45"
 
 
@@ -77,29 +79,39 @@ def fig2_episodes(d: pd.DataFrame):
     ax.set_xlabel("episode length (h)"); ax.set_ylabel("episodes")
     ax.set_title("(a) duration distribution", fontsize=8, loc="left")
 
-    # (b) hazard, shown ONLY where the at-risk set supports it. Beyond that the estimate is
-    # driven by a handful of episodes and swings between 0.5 and 1.0; plotting it would
-    # misrepresent the precision of the flat-hazard claim rather than support it.
-    MIN_AT_RISK = 20
+    # (b) CONTINUATION PROBABILITY c(k) = P(L > k | L >= k). Two things this panel must not do.
+    # It must not call c(k) a hazard: in survival terminology the hazard is the probability of
+    # ENDING, which is 1 - c(k). And it must not draw the geometric fit as a description of the
+    # data, because Section 4.1 rejects that model (chi2 = 72.7 on 10 df). The earlier version of
+    # this figure did both, and titled the panel with a claim the paper's own test refuses.
+    #
+    # The plotted range matches Table 3 exactly, which stops at k = 8 where 70 episodes remain
+    # at risk. Beyond that the estimate is driven by a handful of episodes and swings between
+    # 0.5 and 1.0; showing it solid would misrepresent its precision.
+    MIN_AT_RISK = 70
     ax = axes[1]
     ks = np.arange(1, 25)
     at_risk = np.array([(L >= k).sum() for k in ks])
-    surv = np.array([(L > k).sum() / n if n else np.nan for k, n in zip(ks, at_risk)])
+    cont = np.array([(L > k).sum() / n if n else np.nan for k, n in zip(ks, at_risk)])
     ok = at_risk >= MIN_AT_RISK
-    ax.plot(ks[ok], surv[ok], "o-", color=DARK, ms=2.5, lw=1, label="empirical hazard")
-    ax.plot(ks[~ok], surv[~ok], "o", color="0.8", ms=2, label=f"< {MIN_AT_RISK} at risk")
-    p = 0.809
-    ax.axhline(p, color=MID, ls=":", lw=1.2, label=f"geometric fit p={p:.3f}")
-    kmax = ks[ok].max()
+    ax.plot(ks[ok], cont[ok], "o-", color=DARK, ms=3, lw=1.2,
+            label="continuation probability")
+    ax.plot(ks[~ok], cont[~ok], "o", color="0.8", ms=2, label=f"fewer than {MIN_AT_RISK} at risk")
+    kmax = int(ks[ok].max())
     ax.axvline(kmax + .5, color="0.8", lw=.8)
-    ax.annotate(f"n at risk < {MIN_AT_RISK}", (kmax + 1.0, .12), fontsize=5.5, color="0.5",
-                rotation=90, va="bottom")
+    # a straight line through the well-supported range, to show the direction without implying
+    # that a linear model in k is the right description
+    b, a = np.polyfit(ks[ok], cont[ok], 1)
+    ax.plot(ks[ok], a + b * ks[ok], color=MID, lw=.9, ls="--", label="linear trend")
+    ax.annotate(f"{cont[0]:.2f}", (1, cont[0] + .05), fontsize=6, color=DARK, ha="center")
+    ax.annotate(f"{cont[kmax - 1]:.2f}", (kmax, cont[kmax - 1] - .07), fontsize=6, color=DARK,
+                ha="center")
     ax.set_ylim(0, 1.05); ax.set_xlabel("episode age k (h)")
     ax.set_ylabel("P(L > k | L $\\geq$ k)")
     ax.legend(fontsize=5.5, frameon=False, loc="lower left")
-    ax.set_title("(b) continuation hazard is flat", fontsize=8, loc="left")
-    print(f"  hazard shown to k={kmax} (at risk {at_risk[ok][-1]}); "
-          f"range over that span {surv[ok].min():.2f}-{surv[ok].max():.2f}")
+    ax.set_title("(b) continuation falls with age", fontsize=8, loc="left")
+    print(f"  continuation probability shown to k={kmax} (at risk {at_risk[ok][-1]}); "
+          f"{cont[0]:.3f} -> {cont[kmax-1]:.3f}, slope {b:+.4f}/h")
 
     # (c) mean duration against median survival. A definition that found more persistence would
     # move both; a fixed threshold moves only the mean, because it records a level shift as a
@@ -143,9 +155,11 @@ def fig2_episodes(d: pd.DataFrame):
 # --------------------------------------------------------------------------- Fig 3
 def _roc(task: str) -> tuple:
     """Pooled (H, F, base rate) over all decision thresholds, from saved test-year predictions."""
-    preds = sorted((PROJECT_ROOT / "outputs" / "preds" / "monthly").glob(f"{task}_*.parquet"))
-    if not preds:
-        preds = sorted((PROJECT_ROOT / "outputs" / "preds").glob(f"{task}_*.parquet"))
+    # rolling730 is the scheme of Section 5.4; fall back only if it has not been generated
+    for sub in ("rolling730", "monthly", ""):
+        preds = sorted((PROJECT_ROOT / "outputs" / "preds" / sub).glob(f"{task}_*.parquet"))
+        if preds:
+            break
     ys, ps = [], []
     for f in preds:
         df = pd.read_parquet(f)
@@ -188,33 +202,39 @@ def fig3_value_curve():
             label="attainable value, hourly negative-price target")
     ax.plot(alphas, curves["premium_generator"], "--", color=MID, lw=1.3,
             label="attainable value, $\\geq$4 h run target")
+    ax.annotate("generator: counterexample\n(Section 7.6)", (4.2, -.30), fontsize=5.5,
+                color="0.35", ha="center")
     ax.axhline(0, color="0.6", lw=.8)
 
-    # the load-shifting decision of Section 7.5, whose alpha is measured on realised
-    # deviating days rather than assumed; plotted as the range across shift costs and years
-    try:
-        ls = pd.read_csv(PROJECT_ROOT / "outputs" / "tables" / "load_shifting.csv")
-        ls = ls[(ls.days_acted > 0) & np.isfinite(ls.alpha)]
-        if len(ls):
-            lo, hi = ls.alpha.min(), ls.alpha.max()
-            ax.axvspan(lo, hi, color=DARK, alpha=.10, lw=0)
-            ax.annotate("load shifting\n(Section 7.5)", ((lo + hi) / 2, .62), ha="center",
-                        fontsize=5.5, color="0.25")
-    except FileNotFoundError:
-        pass
+    # The flexible load's alpha comes from load_shifting.csv, NOT from costloss_pooled.csv.
+    # The pooled file still carries the earlier flexible-load formulation that run_shifting.py
+    # replaced -- no energy balance, no displaced counterfactual -- and its alphas (0.46 at a
+    # 5 EUR/MWh shift cost, 1.39 at 15) are an order of magnitude above the measured ones. An
+    # earlier version of this figure plotted them, which put a superseded model on the same axis
+    # as the paper's results.
+    ls = pd.read_csv(PROJECT_ROOT / "outputs" / "tables" / "load_shifting.csv")
+    ls = ls[(ls.days_acted > 0) & np.isfinite(ls.alpha) & (ls.alpha > 0)]
+    if len(ls):
+        lo, hi = ls.alpha.min(), ls.alpha.max()
+        ax.axvspan(lo, hi, color=DARK, alpha=.13, lw=0)
+        # The band sits at alpha < 0.15, hard against the axis, so the label goes in the empty
+        # lower-left rather than beside it: an inline label collides with the Christensen
+        # marker at 1/3, and a leader line to it crosses both value curves.
+        ax.annotate(f"shaded: flexible load, Section 7.5\nmeasured $\\alpha$ = "
+                    f"{lo:.2f}–{hi:.2f}", (0.30, -0.30), ha="left", va="center",
+                    fontsize=5.5, color="0.2")
 
     YLO = -0.5
     for _, r in pooled.iterrows():
         a = r["alpha"]
-        if a <= 0:
-            continue
+        if a <= 0 or r["actor"] != "premium_generator":
+            continue                              # the load is shown as the band above
         row = be[(be.actor == r["actor"]) & (be.param == r["param"])]
         H, F, s = row["H"].mean(), row["F"].mean(), row["base_rate"].mean()
         eref = min(s, (1 - s) * a)
         V = 1 - ((1 - H) * s + F * (1 - s) * a) / eref if eref > 0 else np.nan
-        col = DARK if r["actor"] == "flexible_load" else MID
-        lab = ("load, c=%g" % r["param"]) if r["actor"] == "flexible_load" \
-            else ("gen, ref %g" % r["param"])
+        col = MID
+        lab = "gen, ref %g" % r["param"]
         if V < YLO:                              # off scale: mark at the edge and give the value
             ax.plot([a], [YLO], "v", color=col, ms=5, mec="white", mew=.6, clip_on=False,
                     zorder=5)

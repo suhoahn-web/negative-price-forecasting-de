@@ -2,9 +2,12 @@ cff-version: 1.2.0
 title: >-
   Replication package for "Short episodes, asymmetric payoffs: forecasting negative electricity
   prices and the market premium in Germany"
-message: If you use this software or data, please cite the archived release.
+message: >-
+  If you use this software or data, please cite the concept DOI below. It resolves to the latest
+  archived release, so it does not go stale as the package is revised; the version DOI of each
+  individual release is on the Zenodo page.
 type: software
-version: 1.0.3
+version: 1.0.4
 authors:
   - given-names: Suho
     family-names: Ahn
@@ -16,10 +19,10 @@ doi: 10.5281/zenodo.21926317
 identifiers:
   - type: doi
     value: 10.5281/zenodo.21926317
-    description: Concept DOI, resolving to the latest archived release
-  - type: doi
-    value: 10.5281/zenodo.21926318
-    description: Version DOI of release v1.0.2
+    description: >-
+      Concept DOI, resolving to the latest archived release. No version DOI is recorded here on
+      purpose: a version DOI is minted when a release is cut, so a file inside that release can
+      never carry it, and naming one would mean a stale identifier from the moment it is written.
 license: MIT
 keywords:
   - negative electricity prices

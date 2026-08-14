@@ -139,7 +139,9 @@ Cite the archived deposit:
 > negative electricity prices and the market premium in Germany"* [Software]. Zenodo.
 > https://doi.org/10.5281/zenodo.21926317
 
-That is the **concept DOI**: it always resolves to the most recent archived release, so it does
-not go stale when the package is revised. Each release also carries its own version DOI, listed
-on the Zenodo page; the one accompanying the manuscript is
-`10.5281/zenodo.21926318` for v1.0.2. `CITATION.cff` carries both in machine-readable form.
+That is the **concept DOI**, and it is the one the manuscript cites. It always resolves to the
+most recent archived release, so it does not go stale when the package is revised. Every release
+also carries its own version DOI for anyone who needs to pin an exact snapshot; those are listed
+on the Zenodo page rather than here, because a version DOI is minted at the moment a release is
+cut and so cannot be written into the release it identifies. `CITATION.cff` records the concept
+DOI in machine-readable form.

@@ -15,7 +15,7 @@ Energy Sources Act, and asks what such a forecast is worth to the parties who mi
 ```
 src/                       feature and target construction, data retrieval, the persistence model
 experiments/01 .. 16/      one directory per numbered experiment; each script's docstring states
-                           its purpose and, where applicable, its pre-registered decision rule
+                           its purpose and, where applicable, its pre-specified decision rule
 data/raw/                  the exact data vintage used in the paper (parquet)
 data/metadata/             retrieval timestamps and series lengths
 outputs/tables/            every table in the paper, as generated
@@ -44,7 +44,7 @@ Classifiers are refitted **monthly** on a **rolling 730-day window**. These are 
 choices and only one of them is about computation.
 
 The refit schedule is monthly rather than daily as a concession to cost; `experiments/11_recalibration/`
-reports the pre-registered test that fixed it. The 730-day window is not a tuning choice: the
+reports the pre-specified test that fixed it. The 730-day window is not a tuning choice: the
 paper's primary test is Giacomini & White's (2006) test of conditional predictive ability, whose
 asymptotics require the maximum estimation sample to stay finite as the out-of-sample count
 grows. An expanding window does not satisfy that, so forecasts produced by one cannot be tested
@@ -76,7 +76,16 @@ pip install --no-deps --ignore-requires-python git+https://github.com/jeslago/ep
 
 ## Reproducing the paper
 
-The scripts are not independent; later ones read earlier outputs. Run in this order:
+Everything at once:
+
+```
+python reproduce_all.py                 # all stages, about seven hours
+python reproduce_all.py --skip-lear     # everything except the two LEAR passes, about 90 minutes
+python reproduce_all.py --list          # the stages and their runtimes
+```
+
+It runs the stages in dependency order and ends by checking that every artefact the manuscript
+cites exists. The stages, if you would rather run them one at a time:
 
 | # | Command | Produces | Approx. runtime |
 |---|---|---|---|
@@ -93,7 +102,9 @@ The scripts are not independent; later ones read earlier outputs. Run in this or
 | 11 | `python experiments/09_costloss/run_costloss.py` | Table 15 | 15 min |
 | 12 | `python experiments/13_load_only/run_load_only.py` | Table 16 | 20 min |
 | 13 | `python experiments/14_load_shifting/run_shifting.py` | Tables 12, 13, 14 | 2 min |
-| 14 | `python experiments/12_figures/make_figures.py` | Figures 1-3 | 1 min |
+| 14 | `python experiments/17_calibration/run_calibration.py` | Table J1, J2, Figure 4 | 2 min |
+| 15 | `python experiments/18_amendment/run_amendment_test.py` | Table K1 | 1 min |
+| 16 | `python experiments/12_figures/make_figures.py` | Figures 1-3 | 1 min |
 
 About five and a half hours end to end on six CPU cores, of which four are the two LEAR passes.
 **No GPU is required.** Steps 7 and 8 checkpoint to `outputs/preds/lear_ckpt*.parquet` and resume
@@ -104,6 +115,15 @@ To reproduce the expanding-window robustness column of Appendix H, run step 5 ag
 
 Steps 1 and 5 write intermediate per-observation predictions to `outputs/preds/`, which is not
 tracked here because it is large and fully regenerable.
+
+## A note on the metric column name
+
+The result tables carry a column called `PR_AUC`. It holds **average precision**, computed by
+`sklearn.metrics.average_precision_score`, which is a precision-weighted sum of the recall
+increments rather than an interpolated integral of the precision-recall curve. No script in this
+package integrates that curve. The manuscript calls the quantity average precision (AP) for that
+reason; the column name is left alone so that archived result files stay readable by the scripts
+that wrote them.
 
 ## Determinism
 

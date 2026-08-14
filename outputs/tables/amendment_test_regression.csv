@@ -1,0 +1,9 @@
+comparison,term,coef,se,t
+confounded: negative against non-negative hours,intercept,431.92037527251716,76.91376615751315,5.6156445958969075
+confounded: negative against non-negative hours,post,-185.43286254893172,108.09096042045198,-1.7155260886538095
+confounded: negative against non-negative hours,treated,4101.906270162463,304.1852570774564,13.484895058927764
+confounded: negative against non-negative hours,post x treated,-937.8720302172072,435.91037885156067,-2.151524890708276
+identifying: newly penalised short runs against always-penalised,intercept,4750.24540942928,341.8008806292933,13.897697983350866
+identifying: newly penalised short runs against always-penalised,post,-1194.6365800642056,481.96490766631854,-2.478679590696041
+identifying: newly penalised short runs against always-penalised,treated,-1499.018203546933,580.9157470380065,-2.5804399539695373
+identifying: newly penalised short runs against always-penalised,post x treated,93.17446038874922,875.9655749004121,0.10636771930146018

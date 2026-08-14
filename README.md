@@ -1,5 +1,7 @@
 # Negative electricity prices and the market premium in Germany
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21926317.svg)](https://doi.org/10.5281/zenodo.21926317)
+
 Replication package for **"Short episodes, asymmetric payoffs: forecasting negative electricity
 prices and the market premium in Germany"** by Suho Ahn (School of Business and Technology
 Management, KAIST).
@@ -17,7 +19,7 @@ experiments/01 .. 16/      one directory per numbered experiment; each script's 
 data/raw/                  the exact data vintage used in the paper (parquet)
 data/metadata/             retrieval timestamps and series lengths
 outputs/tables/            every table in the paper, as generated
-outputs/figures/           Figures 1-4
+outputs/figures/           Figures 1-3, plus one unnumbered diagnostic from experiment 02
 ```
 
 ## Data
@@ -91,7 +93,7 @@ The scripts are not independent; later ones read earlier outputs. Run in this or
 | 11 | `python experiments/09_costloss/run_costloss.py` | Table 15 | 15 min |
 | 12 | `python experiments/13_load_only/run_load_only.py` | Table 16 | 20 min |
 | 13 | `python experiments/14_load_shifting/run_shifting.py` | Tables 12, 13, 14 | 2 min |
-| 14 | `python experiments/12_figures/make_figures.py` | Figures 1-4 | 1 min |
+| 14 | `python experiments/12_figures/make_figures.py` | Figures 1-3 | 1 min |
 
 About five and a half hours end to end on six CPU cores, of which four are the two LEAR passes.
 **No GPU is required.** Steps 7 and 8 checkpoint to `outputs/preds/lear_ckpt*.parquet` and resume
@@ -131,4 +133,13 @@ Data: CC BY 4.0, Fraunhofer ISE / Energy-Charts, republishing ENTSO-E Transparen
 
 ## Citation
 
-See `CITATION.cff`, or cite the archived release DOI.
+Cite the archived deposit:
+
+> Ahn, S. (2026). *Replication package for "Short episodes, asymmetric payoffs: forecasting
+> negative electricity prices and the market premium in Germany"* [Software]. Zenodo.
+> https://doi.org/10.5281/zenodo.21926317
+
+That is the **concept DOI**: it always resolves to the most recent archived release, so it does
+not go stale when the package is revised. Each release also carries its own version DOI, listed
+on the Zenodo page; the one accompanying the manuscript is
+`10.5281/zenodo.21926318` for v1.0.2. `CITATION.cff` carries both in machine-readable form.

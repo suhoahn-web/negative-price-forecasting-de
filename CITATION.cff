@@ -4,7 +4,7 @@ title: >-
   prices and the market premium in Germany"
 message: If you use this software or data, please cite the archived release.
 type: software
-version: 1.0.0
+version: 1.0.3
 authors:
   - given-names: Suho
     family-names: Ahn
@@ -12,6 +12,14 @@ authors:
     affiliation: School of Business and Technology Management, KAIST
     country: KR
 repository-code: https://github.com/suhoahn-web/negative-price-forecasting-de
+doi: 10.5281/zenodo.21926317
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.21926317
+    description: Concept DOI, resolving to the latest archived release
+  - type: doi
+    value: 10.5281/zenodo.21926318
+    description: Version DOI of release v1.0.2
 license: MIT
 keywords:
   - negative electricity prices

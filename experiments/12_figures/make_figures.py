@@ -24,7 +24,11 @@ OUT = PROJECT_ROOT / "outputs" / "figures"
 OUT.mkdir(parents=True, exist_ok=True)
 # 600 dpi on save: Elsevier asks for 600 dpi for combination line/halftone art. The on-screen
 # figure dpi is left low so the layout is composed at the printed size rather than scaled up.
-plt.rcParams.update({"font.size": 8, "axes.spines.top": False, "axes.spines.right": False,
+# The guide names Arial, Courier, Times New Roman and Symbol as the fonts to aim for in
+# illustrations; matplotlib's default DejaVu Sans is none of them.
+plt.rcParams.update({"font.size": 8, "font.family": "sans-serif",
+                     "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans"],
+                     "axes.spines.top": False, "axes.spines.right": False,
                      "figure.dpi": 200, "savefig.dpi": 600, "savefig.bbox": "tight"})
 GREY, DARK, MID = "0.75", "0.15", "0.45"
 
@@ -77,7 +81,9 @@ def fig2_episodes(d: pd.DataFrame):
     ax.annotate("EEG 4 h trigger", (5.0, ax.get_ylim()[1] * .93), fontsize=6.5, color=DARK,
                 ha="left", va="top")
     ax.set_xlabel("episode length (h)"); ax.set_ylabel("episodes")
-    ax.set_title("(a) duration distribution", fontsize=8, loc="left")
+    # bare panel identifiers only: the guide asks for no titles above the plots, since the
+    # caption carries the description. The letters stay because the caption refers to them.
+    ax.set_title("(a)", fontsize=8, loc="left")
 
     # (b) CONTINUATION PROBABILITY c(k) = P(L > k | L >= k). Two things this panel must not do.
     # It must not call c(k) a hazard: in survival terminology the hazard is the probability of
@@ -109,7 +115,7 @@ def fig2_episodes(d: pd.DataFrame):
     ax.set_ylim(0, 1.05); ax.set_xlabel("episode age k (h)")
     ax.set_ylabel("P(L > k | L $\\geq$ k)")
     ax.legend(fontsize=5.5, frameon=False, loc="lower left")
-    ax.set_title("(b) continuation falls with age", fontsize=8, loc="left")
+    ax.set_title("(b)", fontsize=8, loc="left")
     print(f"  continuation probability shown to k={kmax} (at risk {at_risk[ok][-1]}); "
           f"{cont[0]:.3f} -> {cont[kmax-1]:.3f}, slope {b:+.4f}/h")
 
@@ -142,7 +148,7 @@ def fig2_episodes(d: pd.DataFrame):
         ax.annotate(f"{md:.1f}", (md + .2, yi - .18), va="center", fontsize=5.5, color=DARK)
     ax.set_xlabel("hours")
     ax.legend(fontsize=5.5, frameon=False, loc="lower right")
-    ax.set_title("(c) the threshold artefact", fontsize=8, loc="left")
+    ax.set_title("(c)", fontsize=8, loc="left")
     ax.set_xlim(0, max(means) * 1.3)
 
     fig.tight_layout()

@@ -7,7 +7,7 @@ message: >-
   archived release, so it does not go stale as the package is revised; the version DOI of each
   individual release is on the Zenodo page.
 type: software
-version: 1.0.4
+version: 1.0.5
 authors:
   - given-names: Suho
     family-names: Ahn
